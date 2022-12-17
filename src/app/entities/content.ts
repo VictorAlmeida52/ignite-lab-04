@@ -1,8 +1,11 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export class Content {
-  private readonly content: string;
+  @ApiProperty()
+  private readonly _value: string;
 
   get value(): string {
-    return this.content;
+    return this._value;
   }
 
   private validateContentLength(content: string): boolean {
@@ -16,6 +19,6 @@ export class Content {
       throw new Error('Content length error');
     }
 
-    this.content = content;
+    this._value = content;
   }
 }

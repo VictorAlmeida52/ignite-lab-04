@@ -1,17 +1,25 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { randomUUID } from 'node:crypto';
 import { Replace } from 'src/helpers/replace';
 import { Content } from './content';
 
-export interface NotificationProps {
+export class NotificationProps {
+  @ApiProperty()
   recipientId: string;
+  @ApiProperty()
   content: Content;
+  @ApiProperty()
   category: string;
+  @ApiPropertyOptional({ type: Date })
   readAt?: Date | null;
+  @ApiProperty()
   createdAt: Date;
 }
 
 export class Notification {
+  @ApiProperty()
   private _id: string;
+  @ApiProperty()
   private props: NotificationProps;
 
   constructor(props: Replace<NotificationProps, { createdAt?: Date }>) {
