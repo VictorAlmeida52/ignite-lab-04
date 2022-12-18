@@ -8,11 +8,15 @@ import {
   ApiBadRequestResponse,
   ApiBody,
   ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { SendNotification } from 'src/app/use-cases/send-notification';
+import { CountRecipientNotificationsResponse } from '../dtos/count-recipient-notifications-response';
 import { CreateNotificationBody } from '../dtos/create-notification-body';
 import { CreateNotificationResponse } from '../dtos/create-notification-response';
+import { GetRecipientNotificationsResponse } from '../dtos/get-recipient-notifications-response';
 import { NotificationViewModel } from '../view-models/notification-view-model';
 
 @ApiTags('notifications')
@@ -26,43 +30,6 @@ export class NotificationsController {
     private countRecipientNotifications: CountRecipientNotifications,
     private getRecipientNotifications: GetRecipientNotifications,
   ) {}
-
-  @Patch(':id/cancel')
-  async cancel(@Param('id') id: string) {
-    await this.cancelNotification.execute({ notificationId: id });
-  }
-
-  @Get('count/recipient/:recipientId')
-  async countByRecipient(@Param('recipientId') recipientId: string) {
-    const { count } = await this.countRecipientNotifications.execute({
-      recipientId,
-    });
-
-    return {
-      count,
-    };
-  }
-
-  @Get('recipient/:recipientId')
-  async getByRecipient(@Param('recipientId') recipientId: string) {
-    const { notifications } = await this.getRecipientNotifications.execute({
-      recipientId,
-    });
-
-    return {
-      notifications: notifications.map(NotificationViewModel.toHTTP),
-    };
-  }
-
-  @Patch(':id/read')
-  async read(@Param('id') id: string) {
-    await this.readNotification.execute({ notificationId: id });
-  }
-
-  @Patch(':id/unread')
-  async unread(@Param('id') id: string) {
-    await this.unreadNotification.execute({ notificationId: id });
-  }
 
   @Post()
   @ApiCreatedResponse({
@@ -85,6 +52,57 @@ export class NotificationsController {
 
     return {
       notification: NotificationViewModel.toHTTP(notification),
+    };
+  }
+
+  @Patch(':id/cancel')
+  @ApiOkResponse({ description: 'Notification successfully canceled' })
+  @ApiInternalServerErrorResponse({ description: 'Notification not found' })
+  async cancel(@Param('id') id: string) {
+    await this.cancelNotification.execute({ notificationId: id });
+  }
+
+  @Patch(':id/read')
+  @ApiOkResponse({ description: 'Notification marked as read' })
+  @ApiInternalServerErrorResponse({ description: 'Notification not found' })
+  async read(@Param('id') id: string) {
+    await this.readNotification.execute({ notificationId: id });
+  }
+
+  @Patch(':id/unread')
+  @ApiOkResponse({ description: 'Notification marked as not read' })
+  @ApiInternalServerErrorResponse({ description: 'Notification not found' })
+  async unread(@Param('id') id: string) {
+    await this.unreadNotification.execute({ notificationId: id });
+  }
+
+  @Get('count/recipient/:recipientId')
+  @ApiOkResponse({
+    description: 'Number of notifications of the informed recipient',
+    type: CountRecipientNotificationsResponse,
+  })
+  async countByRecipient(@Param('recipientId') recipientId: string) {
+    const { count } = await this.countRecipientNotifications.execute({
+      recipientId,
+    });
+
+    return {
+      count,
+    };
+  }
+
+  @Get('recipient/:recipientId')
+  @ApiOkResponse({
+    description: 'Notifications of the informed recipient',
+    type: GetRecipientNotificationsResponse,
+  })
+  async getByRecipient(@Param('recipientId') recipientId: string) {
+    const { notifications } = await this.getRecipientNotifications.execute({
+      recipientId,
+    });
+
+    return {
+      notifications: notifications.map(NotificationViewModel.toHTTP),
     };
   }
 }
