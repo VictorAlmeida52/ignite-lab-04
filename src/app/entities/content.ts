@@ -1,7 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
-
 export class Content {
-  @ApiProperty()
   private readonly _value: string;
 
   get value(): string {

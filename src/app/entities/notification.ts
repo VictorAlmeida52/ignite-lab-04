@@ -1,29 +1,25 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { randomUUID } from 'node:crypto';
 import { Replace } from 'src/helpers/replace';
 import { Content } from './content';
 
-export class NotificationProps {
-  @ApiProperty()
+export interface NotificationProps {
   recipientId: string;
-  @ApiProperty()
   content: Content;
-  @ApiProperty()
   category: string;
-  @ApiPropertyOptional({ type: Date })
   readAt?: Date | null;
-  @ApiProperty()
+  canceledAt?: Date | null;
   createdAt: Date;
 }
 
 export class Notification {
-  @ApiProperty()
   private _id: string;
-  @ApiProperty()
   private props: NotificationProps;
 
-  constructor(props: Replace<NotificationProps, { createdAt?: Date }>) {
-    this._id = randomUUID();
+  constructor(
+    props: Replace<NotificationProps, { createdAt?: Date }>,
+    id?: string,
+  ) {
+    this._id = id ?? randomUUID();
     this.props = {
       ...props,
       createdAt: props.createdAt ?? new Date(),
@@ -58,12 +54,24 @@ export class Notification {
     return this.props.category;
   }
 
-  public set readAt(readAt: Date | null | undefined) {
-    this.props.readAt = readAt;
+  public read() {
+    this.props.readAt = new Date();
+  }
+
+  public unread() {
+    this.props.readAt = null;
   }
 
   public get readAt(): Date | null | undefined {
     return this.props.readAt;
+  }
+
+  public cancel() {
+    this.props.canceledAt = new Date();
+  }
+
+  public get canceledAt(): Date | null | undefined {
+    return this.props.canceledAt;
   }
 
   public get createdAt(): Date {

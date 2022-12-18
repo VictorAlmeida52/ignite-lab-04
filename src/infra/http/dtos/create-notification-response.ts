@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Notification } from 'src/app/entities/notification';
+import { NotificationViewModel } from '../view-models/notification-view-model';
 
 export class CreateNotificationResponse {
   @ApiProperty()
-  notification: Notification;
+  notification: NotificationViewModel;
 }

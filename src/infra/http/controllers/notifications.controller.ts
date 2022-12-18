@@ -1,4 +1,9 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { CancelNotification } from '@app/use-cases/cancel-notification';
+import { CountRecipientNotifications } from '@app/use-cases/count-recipient-notifications';
+import { GetRecipientNotifications } from '@app/use-cases/get-recipient-notifications';
+import { ReadNotification } from '@app/use-cases/read-notification';
+import { UnreadNotification } from '@app/use-cases/unread-notification';
+import { Controller, Post, Body, Patch, Param, Get } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -8,11 +13,56 @@ import {
 import { SendNotification } from 'src/app/use-cases/send-notification';
 import { CreateNotificationBody } from '../dtos/create-notification-body';
 import { CreateNotificationResponse } from '../dtos/create-notification-response';
+import { NotificationViewModel } from '../view-models/notification-view-model';
 
 @ApiTags('notifications')
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private sendNotification: SendNotification) {}
+  constructor(
+    private sendNotification: SendNotification,
+    private cancelNotification: CancelNotification,
+    private readNotification: ReadNotification,
+    private unreadNotification: UnreadNotification,
+    private countRecipientNotifications: CountRecipientNotifications,
+    private getRecipientNotifications: GetRecipientNotifications,
+  ) {}
+
+  @Patch(':id/cancel')
+  async cancel(@Param('id') id: string) {
+    await this.cancelNotification.execute({ notificationId: id });
+  }
+
+  @Get('count/recipient/:recipientId')
+  async countByRecipient(@Param('recipientId') recipientId: string) {
+    const { count } = await this.countRecipientNotifications.execute({
+      recipientId,
+    });
+
+    return {
+      count,
+    };
+  }
+
+  @Get('recipient/:recipientId')
+  async getByRecipient(@Param('recipientId') recipientId: string) {
+    const { notifications } = await this.getRecipientNotifications.execute({
+      recipientId,
+    });
+
+    return {
+      notifications: notifications.map(NotificationViewModel.toHTTP),
+    };
+  }
+
+  @Patch(':id/read')
+  async read(@Param('id') id: string) {
+    await this.readNotification.execute({ notificationId: id });
+  }
+
+  @Patch(':id/unread')
+  async unread(@Param('id') id: string) {
+    await this.unreadNotification.execute({ notificationId: id });
+  }
 
   @Post()
   @ApiCreatedResponse({
@@ -33,6 +83,8 @@ export class NotificationsController {
       category,
     });
 
-    return { notification };
+    return {
+      notification: NotificationViewModel.toHTTP(notification),
+    };
   }
 }
